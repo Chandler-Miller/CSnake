@@ -1,0 +1,4 @@
+---
+Checks:          'clang-diagnostic-*,clang-analyzer-*,modernize-*,bugprone-*,darwin-*,google-*,linuxkernel-*,performance-*,portability-*,readability-*, -*,llvm-header-guard'
+WarningsAsErrors: "true"
+FormatStyle:     file

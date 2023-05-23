@@ -46,16 +46,18 @@ bool equal_node(const struct PathNode* primary, const struct PathNode* other) {
 
 struct PathNode** reconstruct_path(struct PathNode* node, int* length) {
     struct PathNode** path = malloc(sizeof(struct PathNode*));
+    *path = NULL; // Initialize with a NULL pointer
 
     while (node != NULL) {
         path = realloc(path, (*length + 1) * sizeof(struct PathNode*));
         path[*length] = node;
         node = node->Parent;
-        length++;
+        (*length)++;
     }
 
     return path;
 }
+
 
 struct PathNode** a_star_search(struct PathNode* start, struct PathNode* dest, int** grid, int grid_rows, int grid_cols, int* length) {
     struct PathNode** open_list = malloc(sizeof(struct PathNode*));
@@ -76,7 +78,7 @@ struct PathNode** a_star_search(struct PathNode* start, struct PathNode* dest, i
         }
 
         if (equal_node(current, dest)) {
-            return reconstruct_path(current, &length);
+            return reconstruct_path(current, length);
         }
 
         open_list[current_index] = open_list[open_list_length - 1];
@@ -238,13 +240,13 @@ void draw(struct Node* snake, struct Food* food, struct PathNode* start, struct 
     dest->Parent = NULL;
 
     // Draw top boundary
-    for (int i = 0; i < width + 2; i++) {
+    for (int i = 0; i < width; ++i) {
         mvprintw(0, i, "#");
         grid[0][i] = 1;
     }
 
     // Draw side boundaries
-    for (int y = 1; y <= height; y++) {
+    for (int y = 1; y <= height; ++y) {
         mvprintw(y, 0, "#");
         mvprintw(y, width + 1, "#");
         grid[y][0] = 1;
@@ -284,14 +286,17 @@ void path_snake(struct PathNode** path, struct Snake* snake, int length) {
         int x = path[1]->X - path[0]->X;
         int y = path[1]->Y - path[0]->Y;
 
+        snake->x_direction = x;
+        snake->y_direction = y;
         snake->x_speed = x;
         snake->y_speed = y;
-        length--;
     }
 }
 
-void gameloop(struct Snake* snake, struct Food* food, struct PathNode* start, struct PathNode* dest, int** grid, int grid_rows, int grid_cols) {
+
+void gameloop(struct Snake* snake, struct Food* food, struct PathNode* start, struct PathNode* dest, int grid_rows, int grid_cols) {
     int input;
+    int grid[30][60] = {0};
 
     while (!gameover) {
         input = getch();
@@ -365,10 +370,11 @@ int main() {
 
     int grid_rows = height;
     int grid_cols = width;
-    int ** grid = malloc(grid_rows * sizeof(int*));
-    for (int i = 0; i < grid_rows; i++) {
-        grid[i] = malloc(grid_cols * sizeof(int));
-    }
+    
+    //malloc(grid_rows * sizeof(int*));
+    // for (int i = 0; i < grid_rows; i++) {
+    //     grid[i] = malloc(grid_cols * sizeof(int));
+    // }
 
     struct Node* head = (struct Node*) malloc(sizeof(struct Node));
     head->X = width / 2;
@@ -377,12 +383,19 @@ int main() {
     head->y_direction = 0;
     head->next = NULL;
 
-    struct PathNode* start = malloc(sizeof(struct PathNode*));
-    start->X = head->X;
-    start->Y = head->Y;
-    start->G = 0.0;
-    start->H = 0.0;
-    start->Parent = NULL;
+    struct PathNode start = {
+        .X = head->X,
+        .Y = head->Y,
+        .G = 0.0,
+        .H = 0.0,
+        .Parent = NULL
+    };
+    // malloc(sizeof(struct PathNode*));
+    // start->X = head->X;
+    // start->Y = head->Y;
+    // start->G = 0.0;
+    // start->H = 0.0;
+    // start->Parent = NULL;
 
     struct Snake snake;
     snake.parts = head;
@@ -407,14 +420,11 @@ int main() {
     dest->H = 0.0;
     dest->Parent = NULL;
 
-    gameloop(&snake, food, start, dest, grid, grid_rows, grid_cols);
+    gameloop(&snake, food, &start, dest, grid_rows, grid_cols);
 
     free_snake(snake.parts);
 
     free(food);
-
-    free(grid);
-    free(start);
     free(dest);
 
     endwin(); // Clean up ncurses
