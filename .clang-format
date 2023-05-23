@@ -1,0 +1,16 @@
+---
+BasedOnStyle: LLVM
+UseTab: Always
+ColumnLimit: 80
+IndentWidth: 8
+TabWidth: 8
+BreakBeforeBraces: Linux
+AlignEscapedNewlines: Left
+AlignOperands: true
+AllowShortIfStatementsOnASingleLine: false
+IndentCaseLabels: false
+AlignAfterOpenBracket: Align
+PointerAlignment: Right
+ReferenceAlignment: Right
+AlignArrayOfStructures: Left
+PenaltyExcessCharacter: 4
