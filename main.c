@@ -44,13 +44,12 @@ bool equal_node(const struct PathNode* primary, const struct PathNode* other) {
     return (primary->X == other->X) && (primary->Y == other->Y);
 }
 
-struct PathNode** reconstruct_path(struct PathNode* node) {
+struct PathNode** reconstruct_path(struct PathNode* node, int* length) {
     struct PathNode** path = malloc(sizeof(struct PathNode*));
-    int length = 0;
 
     while (node != NULL) {
-        path = realloc(path, (length + 1) * sizeof(struct PathNode*));
-        path[length] = node;
+        path = realloc(path, (*length + 1) * sizeof(struct PathNode*));
+        path[*length] = node;
         node = node->Parent;
         length++;
     }
@@ -58,7 +57,7 @@ struct PathNode** reconstruct_path(struct PathNode* node) {
     return path;
 }
 
-struct PathNode** a_star_search(struct PathNode* start, struct PathNode* dest, int** grid, int grid_rows, int grid_cols) {
+struct PathNode** a_star_search(struct PathNode* start, struct PathNode* dest, int** grid, int grid_rows, int grid_cols, int* length) {
     struct PathNode** open_list = malloc(sizeof(struct PathNode*));
     int open_list_length = 1;
 
@@ -77,7 +76,7 @@ struct PathNode** a_star_search(struct PathNode* start, struct PathNode* dest, i
         }
 
         if (equal_node(current, dest)) {
-            return reconstruct_path(current);
+            return reconstruct_path(current, &length);
         }
 
         open_list[current_index] = open_list[open_list_length - 1];
@@ -171,10 +170,6 @@ void free_snake(struct Node* snake) {
         current = current->next;
         free(temp);
     }
-}
-
-void free_food(struct Food* food) {
-    free(food);
 }
 
 void update_snake(struct Snake* snake, struct Food* food) {
@@ -273,8 +268,6 @@ void draw(struct Node* snake, struct Food* food, struct PathNode* start, struct 
         grid[height + 1][i] = 1;
     }
 
-    
-
     refresh();
 }
 
@@ -286,14 +279,14 @@ void game_over() {
     sleep(3);
 }
 
-void path_snake(struct PathNode** path, struct Snake* snake) {
-
-    if (sizeof(path) > 1) {
+void path_snake(struct PathNode** path, struct Snake* snake, int length) {
+    if (length > 1) {
         int x = path[1]->X - path[0]->X;
         int y = path[1]->Y - path[0]->Y;
 
         snake->x_speed = x;
         snake->y_speed = y;
+        length--;
     }
 }
 
@@ -353,8 +346,9 @@ void gameloop(struct Snake* snake, struct Food* food, struct PathNode* start, st
 
         update_snake(snake, food);
         draw(snake->parts, food, start, dest, grid);
-        struct PathNode** path = a_star_search(start, dest, grid, grid_rows, grid_cols);
-        path_snake(path, snake);
+        int length = 0;
+        struct PathNode** path = a_star_search(start, dest, grid, grid_rows, grid_cols, &length);
+        path_snake(path, snake, length);
         usleep(100000);
     }
 
@@ -417,7 +411,7 @@ int main() {
 
     free_snake(snake.parts);
 
-    free_food(food);
+    free(food);
 
     free(grid);
     free(start);
